@@ -28,8 +28,8 @@ app.use(express.urlencoded({ extended: true }))
 
 // Health check endpoint
 app.get('/health', (req, res) => {
-  res.json({ 
-    status: 'OK', 
+  res.json({
+    status: 'OK',
     timestamp: new Date().toISOString(),
     service: 'teste-software-backend'
   })
@@ -58,11 +58,11 @@ process.on('SIGTERM', async () => {
 })
 
 if (process.env.NODE_ENV !== 'test' && !process.env.VITEST) {
-  app.listen(PORT, () => {
-    console.log(`Server running on port ${PORT}`)
-    console.log(`Health check: http://localhost:${PORT}/health`)
-    console.log(`API docs: http://localhost:${PORT}/api`)
-  })
+  app.listen(PORT, () => {
+    console.log(`Server running on port ${PORT}`)
+    console.log(`Health check: http://localhost:${PORT}/health`)
+    console.log(`API docs: http://localhost:${PORT}/api`)
+  })
 }
 
 export { prisma }

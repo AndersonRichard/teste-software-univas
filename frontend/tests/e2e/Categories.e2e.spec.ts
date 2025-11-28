@@ -1,53 +1,66 @@
-import { test, expect } from "@playwright/test";
+import { test, expect } from '@playwright/test';
 
-test.describe("Categorias", () => {
-  test("navega para Categorias e lista itens do backend", async ({ page }) => {
-    await page.goto("/"); // Dashboard
-    await page.getByRole("link", { name: "Categorias" }).click(); // Título da seção
-    await expect(
-      page.getByRole("heading", { name: /Categorias/i })
-    ).toBeVisible();
-    
-    // Categorias semeadas (seed do backend) - ajuste conforme seu seed
-    // await expect(page.getByText(/Eletrônicos/i)).toBeVisible();
-    // await expect(page.getByText(/Livros/i)).toBeVisible();
+test.describe('Categorias', () => {
+
+  test.beforeEach(async ({ page }) => {
+    await page.goto('/');
+    await page.getByRole('link', { name: /Categorias/i }).click();
   });
 
-  test("cria categoria e aparece na lista", async ({ page }) => {
-    await page.goto("/categories");
-    await page.getByRole("button", { name: /Adicionar Categoria/i }).click();
-    
-    const uniqueName = `Categoria-${Date.now()}`;
-    await page.getByLabel("Nome:").fill(uniqueName);
-    await page.getByLabel("Descrição:").fill("Descrição de teste E2E");
-    await page.getByRole("button", { name: /Criar/i }).click();
-    
-    // Aguarda recarga da lista
-    await expect(page.getByText(uniqueName)).toBeVisible();
+  test('deve listar as categorias', async ({ page }) => {
+    await expect(page.getByRole('heading', { name: /Categorias/i })).toBeVisible();
+    await expect(page.locator('table')).toBeVisible(); 
   });
 
-  test("atualiza uma categoria existente", async ({ page }) => {
-    await page.goto("/categories");
-    await page.getByRole("button", { name: /Editar/i }).first().click();
+  test('deve criar uma nova categoria', async ({ page }) => {
+    // 1. Clica no botão de abrir o modal/formulário
+    await page.getByRole('button', { name: 'Adicionar Categoria' }).click();
+
+    const nomeCategoria = `Cat Nova ${Date.now()}`;
+    await page.getByRole('textbox').first().fill(nomeCategoria);
     
-    const updatedName = `Atualizada-${Date.now()}`;
-    await page.getByLabel("Nome:").fill(updatedName);
-    await page.getByLabel("Descrição:").fill("Descrição atualizada E2E");
-    await page.getByRole("button", { name: /Atualizar/i }).click();
-    
-    await expect(page.getByText(updatedName)).toBeVisible();
+    await page.getByRole('button', { name: 'Criar', exact: true }).click();
+
+    await expect(page.getByText(nomeCategoria)).toBeVisible();
   });
 
-  test("exclui uma categoria", async ({ page }) => {
-    await page.goto("/categories");
-    await page.getByRole("button", { name: /Excluir/i }).first().click();
+  test('deve atualizar uma categoria', async ({ page }) => {
+    // 1. Criação prévia (Preparação)
+    await page.getByRole('button', { name: 'Adicionar Categoria' }).click();
+    const nomeOriginal = `Cat Edit ${Date.now()}`;
+    await page.getByRole('textbox').first().fill(nomeOriginal);
+    await page.getByRole('button', { name: 'Criar', exact: true }).click();
+
+    // 2. Edição
+    await page.getByRole('row', { name: nomeOriginal })
+              .getByRole('button', { name: /Editar/i }).click();
+
+    const nomeEditado = `${nomeOriginal} - Editado`;
+    await page.getByRole('textbox').first().fill(nomeEditado);
     
-    const confirmButton = page.getByRole("button", { name: /Confirmar/i });
-    if (await confirmButton.isVisible()) {
-      await confirmButton.click();
-    }
-    
-    const firstRow = page.getByRole("row").nth(1);
-    await expect(firstRow).toBeVisible();
+    await page.getByRole('button', { name: /Salvar|Atualizar/i }).click();
+
+    await expect(page.getByText(nomeEditado)).toBeVisible();
   });
+
+  test('deve excluir uma categoria', async ({ page }) => {
+    // 1. Criação prévia (Preparação)
+    await page.getByRole('button', { name: 'Adicionar Categoria' }).click();
+    const nomeDeletar = `Cat Del ${Date.now()}`;
+    await page.getByRole('textbox').first().fill(nomeDeletar);
+    await page.getByRole('button', { name: 'Criar', exact: true }).click(); // Correção aqui também
+    await expect(page.getByText(nomeDeletar)).toBeVisible();
+
+    // Ouvinte de Dialog (Alertas)
+    page.on('dialog', async dialog => {
+        await dialog.accept();
+    });
+
+    // 2. Exclusão
+    await page.getByRole('row', { name: nomeDeletar })
+              .getByRole('button', { name: /Excluir/i }).click();
+
+    await expect(page.getByText(nomeDeletar)).not.toBeVisible();
+  });
+
 });

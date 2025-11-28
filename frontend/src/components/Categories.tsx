@@ -114,6 +114,7 @@ const Categories: React.FC = () => {
         {showForm && (
           <form onSubmit={handleSubmit} style={{ marginTop: '20px' }}>
             <div className="form-group">
+              <label htmlFor="category-name">Nome:</label>
               <label>Nome:</label>
               <input
                 type="text"
@@ -123,6 +124,7 @@ const Categories: React.FC = () => {
               />
             </div>
             <div className="form-group">
+              <label htmlFor="descrit">Nome:</label>
               <label>Descrição:</label>
               <textarea
                 value={formData.description}
